@@ -40,7 +40,8 @@
           <select id="amPmFinal"><option>AM</option><option>PM</option></select>
           <input type="text" id="destino" placeholder="Destino" required>
           <input type="number" id="distancia" step="0.01" placeholder="Distancia (km)" required>
-          <input type="text" id="duracion" placeholder="Duración (00:00)">
+          <!-- Campo de Duración -->
+          <input type="text" id="duracion" placeholder="Duración (ej: 00:18)">
           <input type="number" id="tarifa" step="0.01" placeholder="Tarifa Bruta ($)" required>
           <input type="number" id="seguro" step="0.01" value="0">
           <input type="number" id="mantenimiento" step="0.01" value="0">
@@ -56,7 +57,7 @@
           <thead>
             <tr>
               <th>Fecha</th><th>Inicio</th><th>Fin</th><th>Origen</th><th>Destino</th>
-              <th>Km</th><th>Tarifa</th><th>Neto</th><th>Gasolina</th><th>Costo Total</th>
+              <th>Km</th><th>Duración</th><th>Tarifa</th><th>Neto</th><th>Gasolina</th><th>Costo Total</th>
               <th>Utilidad</th><th>¿Rentable?</th><th class="no-print">Acciones</th>
             </tr>
           </thead>
@@ -73,6 +74,8 @@
         <div class="card"><h3>Utilidad Real</h3><p id="d-utilidad">$0.00</p></div>
         <div class="card"><h3>Viajes Rentables</h3><p id="d-rentables">0</p></div>
         <div class="card"><h3>Ganancia Prom/Viaje</h3><p id="d-promedio">$0.00</p></div>
+        <!-- Nueva Tarjeta de Duración -->
+        <div class="card"><h3>Duración Promedio</h3><p id="d-duracion">00:00</p></div>
       </div>
       <div class="cards">
         <div class="card"><h3>Costo por KM</h3><p id="d-costo-km">$0.00</p></div>

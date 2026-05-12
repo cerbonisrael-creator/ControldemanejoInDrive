@@ -70,7 +70,7 @@ document.getElementById('rideForm').addEventListener('submit', async e => {
     origen: document.getElementById('origen').value,
     destino: document.getElementById('destino').value,
     distancia: parseFloat(document.getElementById('distancia').value),
-    duracion: document.getElementById('duracion').value || '00:00',
+    duracion: document.getElementById('duracion').value || '00:00', // Guarda duración
     tarifa: parseFloat(document.getElementById('tarifa').value),
     seguro: parseFloat(document.getElementById('seguro').value) || 0,
     mantenimiento: parseFloat(document.getElementById('mantenimiento').value) || 0,
@@ -107,6 +107,7 @@ function renderTable() {
     <tr>
       <td>${r.fecha}</td><td>${r.hraInicio}</td><td>${r.hraFinal}</td>
       <td>${r.origen}</td><td>${r.destino}</td><td>${r.distancia}</td>
+      <td>${r.duracion}</td> <!-- Muestra duración -->
       <td>$${r.tarifa.toFixed(2)}</td><td>$${r.neto.toFixed(2)}</td>
       <td>$${r.gas.toFixed(2)}</td><td>$${r.costo.toFixed(2)}</td>
       <td>$${r.util.toFixed(2)}</td>
@@ -127,12 +128,14 @@ function updateDashboard() {
   const t = rides.reduce((a, r) => ({
     bruto: a.bruto + r.tarifa, neto: a.neto + r.neto,
     gas: a.gas + r.gas, costo: a.costo + r.costo,
-    util: a.util + r.util, km: a.km + r.distancia
-  }), { bruto: 0, neto: 0, gas: 0, costo: 0, util: 0, km: 0 });
+    util: a.util + r.util, km: a.km + r.distancia,
+    duracionMin: a.duracionMin + parseDurationToMinutes(r.duracion)
+  }), { bruto: 0, neto: 0, gas: 0, costo: 0, util: 0, km: 0, duracionMin: 0 });
 
   const costoKm = t.km ? t.gas / t.km : 0;
-  const tarifaMin = costoKm * 1.2;
-  const tarifaProm = t.km ? t.neto / t.km : 0;
+  const tarifaMinKm = costoKm * 1.2;
+  const tarifaPromKm = t.km ? t.neto / t.km : 0;
+  const duracionPromMin = t.duracionMin / rides.length;
 
   document.getElementById('d-brutos').textContent = `$${t.bruto.toFixed(2)}`;
   document.getElementById('d-netos').textContent = `$${t.neto.toFixed(2)}`;
@@ -140,9 +143,29 @@ function updateDashboard() {
   document.getElementById('d-utilidad').textContent = `$${t.util.toFixed(2)}`;
   document.getElementById('d-rentables').textContent = `${rides.filter(r=>r.rentable==='SI').length} de ${rides.length}`;
   document.getElementById('d-promedio').textContent = `$${(t.util/rides.length).toFixed(2)}`;
+  
+  // Actualiza la tarjeta de duración promedio
+  document.getElementById('d-duracion').textContent = formatMinutesToTime(duracionPromMin);
+  
   document.getElementById('d-costo-km').textContent = `$${costoKm.toFixed(2)}`;
-  document.getElementById('d-tarifa-min').textContent = `$${tarifaMin.toFixed(2)}`;
-  document.getElementById('d-rentable-bool').textContent = tarifaProm > tarifaMin ? '✅ SÍ' : '❌ NO';
+  document.getElementById('d-tarifa-min').textContent = `$${tarifaMinKm.toFixed(2)}`;
+  document.getElementById('d-rentable-bool').textContent = tarifaPromKm > tarifaMinKm ? '✅ SÍ' : '❌ NO';
+}
+
+// Funciones auxiliares para manejar tiempo
+function parseDurationToMinutes(durationStr) {
+  if (!durationStr) return 0;
+  const parts = durationStr.split(':');
+  if (parts.length >= 2) {
+    return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+  }
+  return 0;
+}
+
+function formatMinutesToTime(minutes) {
+  const hrs = Math.floor(minutes / 60);
+  const mins = Math.round(minutes % 60);
+  return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 }
 
 function setupTabs() {
@@ -218,7 +241,7 @@ function imprimirReporte() {
   window.print();
 }
 
-// 📥 EXPORTAR/IMPORTAR (Sin cambios, se mantiene igual)
+// 📥 EXPORTAR/IMPORTAR
 function exportJSON() {
   const blob = new Blob([JSON.stringify({ version: 1, params, rides }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
