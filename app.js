@@ -70,7 +70,7 @@ document.getElementById('rideForm').addEventListener('submit', async e => {
     origen: document.getElementById('origen').value,
     destino: document.getElementById('destino').value,
     distancia: parseFloat(document.getElementById('distancia').value),
-    duracion: document.getElementById('duracion').value || '00:00', // Guarda duración
+    duracion: document.getElementById('duracion').value || '00:00',
     tarifa: parseFloat(document.getElementById('tarifa').value),
     seguro: parseFloat(document.getElementById('seguro').value) || 0,
     mantenimiento: parseFloat(document.getElementById('mantenimiento').value) || 0,
@@ -107,7 +107,7 @@ function renderTable() {
     <tr>
       <td>${r.fecha}</td><td>${r.hraInicio}</td><td>${r.hraFinal}</td>
       <td>${r.origen}</td><td>${r.destino}</td><td>${r.distancia}</td>
-      <td>${r.duracion}</td> <!-- Muestra duración -->
+      <td>${r.duracion}</td>
       <td>$${r.tarifa.toFixed(2)}</td><td>$${r.neto.toFixed(2)}</td>
       <td>$${r.gas.toFixed(2)}</td><td>$${r.costo.toFixed(2)}</td>
       <td>$${r.util.toFixed(2)}</td>
@@ -143,40 +143,15 @@ function updateDashboard() {
   document.getElementById('d-utilidad').textContent = `$${t.util.toFixed(2)}`;
   document.getElementById('d-rentables').textContent = `${rides.filter(r=>r.rentable==='SI').length} de ${rides.length}`;
   document.getElementById('d-promedio').textContent = `$${(t.util/rides.length).toFixed(2)}`;
-  
-  // Actualiza la tarjeta de duración promedio
   document.getElementById('d-duracion').textContent = formatMinutesToTime(duracionPromMin);
+  
+  // Nuevos indicadores Dashboard
+  document.getElementById('d-km-total').textContent = `${t.km.toFixed(2)} km`;
+  document.getElementById('d-tiempo-total').textContent = formatMinutesToTime(t.duracionMin);
   
   document.getElementById('d-costo-km').textContent = `$${costoKm.toFixed(2)}`;
   document.getElementById('d-tarifa-min').textContent = `$${tarifaMinKm.toFixed(2)}`;
-  document.getElementById('d-rentable-bool').textContent = tarifaPromKm > tarifaMinKm ? '✅ SÍ' : '❌ NO';
-}
-
-// Funciones auxiliares para manejar tiempo
-function parseDurationToMinutes(durationStr) {
-  if (!durationStr) return 0;
-  const parts = durationStr.split(':');
-  if (parts.length >= 2) {
-    return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
-  }
-  return 0;
-}
-
-function formatMinutesToTime(minutes) {
-  const hrs = Math.floor(minutes / 60);
-  const mins = Math.round(minutes % 60);
-  return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-}
-
-function setupTabs() {
-  document.querySelectorAll('.tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(btn.dataset.tab).classList.add('active');
-    });
-  });
+  document.getElementById('d-rentable-bool').textContent = tarifaPromKm > tarifaMinKm ? '✅ SÍ' : ' NO';
 }
 
 // 📄 REPORTES MENSUALES
@@ -198,8 +173,9 @@ function generarReporte() {
     bruto: acc.bruto + r.tarifa, neto: acc.neto + r.neto,
     gas: acc.gas + r.gas, costo: acc.costo + r.costo,
     utilidad: acc.utilidad + r.util, km: acc.km + r.distancia,
-    isr: acc.isr + r.isr, ivaSat: acc.ivaSat + r.ivaSat
-  }), { bruto: 0, neto: 0, gas: 0, costo: 0, utilidad: 0, km: 0, isr: 0, ivaSat: 0 });
+    isr: acc.isr + r.isr, ivaSat: acc.ivaSat + r.ivaSat,
+    duracionMin: acc.duracionMin + parseDurationToMinutes(r.duracion)
+  }), { bruto: 0, neto: 0, gas: 0, costo: 0, utilidad: 0, km: 0, isr: 0, ivaSat: 0, duracionMin: 0 });
 
   const rentables = filtrados.filter(r => r.rentable === 'SI').length;
   const costoKm = totales.km ? totales.gas / totales.km : 0;
@@ -208,6 +184,10 @@ function generarReporte() {
   const rentableBool = tarifaPromKm > tarifaMinKm ? '✅ SÍ' : '❌ NO';
   const mesNombre = new Date(anio, mes).toLocaleString('es-MX', { month: 'long' });
   const hoy = new Date().toLocaleString('es-MX');
+  
+  // Cálculos de KM y Tiempo para Reportes
+  const avgKm = totales.km / filtrados.length;
+  const avgTimeMin = totales.duracionMin / filtrados.length;
 
   const html = `
     <h2>📊 REPORTE MENSUAL - ${mesNombre.toUpperCase()} ${anio}</h2>
@@ -220,15 +200,18 @@ function generarReporte() {
       <div class="reporte-item"><h4>Viajes Rentables</h4><p>${rentables} / ${filtrados.length}</p></div>
       <div class="reporte-item"><h4>ISR Estimado (10%)</h4><p>$${totales.isr.toFixed(2)}</p></div>
       <div class="reporte-item"><h4>IVA Estimado (16%)</h4><p>$${totales.ivaSat.toFixed(2)}</p></div>
+      <div class="reporte-item"><h4>KM Totales Mes</h4><p>${totales.km.toFixed(2)} km</p></div>
+      <div class="reporte-item"><h4>Promedio KM/Viaje</h4><p>${avgKm.toFixed(2)} km</p></div>
+      <div class="reporte-item"><h4>Tiempo Total Mes</h4><p>${formatMinutesToTime(totales.duracionMin)}</p></div>
+      <div class="reporte-item"><h4>Promedio Tiempo/Viaje</h4><p>${formatMinutesToTime(avgTimeMin)}</p></div>
       <div class="reporte-item"><h4>Costo por KM</h4><p>$${costoKm.toFixed(2)}</p></div>
       <div class="reporte-item"><h4>Tarifa Mínima Rentable/KM</h4><p>$${tarifaMinKm.toFixed(2)}</p></div>
-      <div class="reporte-item"><h4>Tarifa Promedio/KM</h4><p>$${tarifaPromKm.toFixed(2)}</p></div>
       <div class="reporte-item"><h4>¿Es Rentable?</h4><p>${rentableBool}</p></div>
     </div>
     <h3>📋 Detalle de Viajes</h3>
     <table class="reporte-tabla">
-      <thead><tr><th>Fecha</th><th>Tarifa</th><th>Neto</th><th>Gasolina</th><th>Costo Total</th><th>Utilidad</th><th>Rentable</th></tr></thead>
-      <tbody>${filtrados.map(r => `<tr><td>${r.fecha}</td><td>$${r.tarifa.toFixed(2)}</td><td>$${r.neto.toFixed(2)}</td><td>$${r.gas.toFixed(2)}</td><td>$${r.costo.toFixed(2)}</td><td>$${r.util.toFixed(2)}</td><td class="${r.rentable==='SI'?'si':'no'}">${r.rentable}</td></tr>`).join('')}</tbody>
+      <thead><tr><th>Fecha</th><th>Km</th><th>Duración</th><th>Tarifa</th><th>Neto</th><th>Utilidad</th><th>Rentable</th></tr></thead>
+      <tbody>${filtrados.map(r => `<tr><td>${r.fecha}</td><td>${r.distancia}</td><td>${r.duracion}</td><td>$${r.tarifa.toFixed(2)}</td><td>$${r.neto.toFixed(2)}</td><td>$${r.util.toFixed(2)}</td><td class="${r.rentable==='SI'?'si':'no'}">${r.rentable}</td></tr>`).join('')}</tbody>
     </table>
     <p style="margin-top:1.5rem; font-size:0.75rem; color:#6b7280;">Generado el ${hoy} | InDrive Tracker CDMX (Local)</p>
   `;
@@ -237,11 +220,9 @@ function generarReporte() {
   document.getElementById('reporte-container').style.display = 'block';
 }
 
-function imprimirReporte() {
-  window.print();
-}
+function imprimirReporte() { window.print(); }
 
-// 📥 EXPORTAR/IMPORTAR
+//  EXPORTAR/IMPORTAR
 function exportJSON() {
   const blob = new Blob([JSON.stringify({ version: 1, params, rides }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
@@ -282,5 +263,3 @@ async function importData(input) {
     } catch (err) { alert('❌ Error: ' + err.message); }
   };
   reader.readAsText(file);
-  input.value = '';
-}

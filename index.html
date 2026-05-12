@@ -25,7 +25,7 @@
     <nav class="tabs no-print">
       <button class="tab active" data-tab="registro">📋 Registro</button>
       <button class="tab" data-tab="dashboard">📊 Dashboard</button>
-      <button class="tab" data-tab="reportes">📄 Reportes</button>
+      <button class="tab" data-tab="reportes"> Reportes</button>
       <button class="tab" data-tab="parametros">⚙️ Parámetros</button>
     </nav>
 
@@ -40,7 +40,6 @@
           <select id="amPmFinal"><option>AM</option><option>PM</option></select>
           <input type="text" id="destino" placeholder="Destino" required>
           <input type="number" id="distancia" step="0.01" placeholder="Distancia (km)" required>
-          <!-- Campo de Duración -->
           <input type="text" id="duracion" placeholder="Duración (ej: 00:18)">
           <input type="number" id="tarifa" step="0.01" placeholder="Tarifa Bruta ($)" required>
           <input type="number" id="seguro" step="0.01" value="0">
@@ -74,8 +73,10 @@
         <div class="card"><h3>Utilidad Real</h3><p id="d-utilidad">$0.00</p></div>
         <div class="card"><h3>Viajes Rentables</h3><p id="d-rentables">0</p></div>
         <div class="card"><h3>Ganancia Prom/Viaje</h3><p id="d-promedio">$0.00</p></div>
-        <!-- Nueva Tarjeta de Duración -->
         <div class="card"><h3>Duración Promedio</h3><p id="d-duracion">00:00</p></div>
+        <!-- Nuevos indicadores -->
+        <div class="card"><h3>Kilometraje Total</h3><p id="d-km-total">0.00 km</p></div>
+        <div class="card"><h3>Tiempo Total Manejo</h3><p id="d-tiempo-total">00:00</p></div>
       </div>
       <div class="cards">
         <div class="card"><h3>Costo por KM</h3><p id="d-costo-km">$0.00</p></div>
@@ -99,7 +100,7 @@
         <button onclick="generarReporte()">📊 Generar Reporte</button>
       </div>
       <div id="reporte-container" style="display:none; margin-top:1rem;">
-        <button onclick="imprimirReporte()" class="no-print" style="margin-bottom:1rem;">🖨️ Imprimir / Guardar PDF</button>
+        <button onclick="imprimirReporte()" class="no-print" style="margin-bottom:1rem;">️ Imprimir / Guardar PDF</button>
         <div id="reporte-content" class="reporte-box"></div>
       </div>
     </section>
