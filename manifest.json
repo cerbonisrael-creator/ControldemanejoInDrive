@@ -1,0 +1,9 @@
+{
+  "name": "InDrive Tracker CDMX",
+  "short_name": "InDrive",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#2563eb",
+  "icons": []
+}

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#2563eb">
+  <title>InDrive Tracker CDMX</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🚗 InDrive Tracker</h1>
+      <div id="status" class="status">🟢 En línea</div>
+    </div>
+    <div class="actions no-print">
+      <button onclick="exportJSON()">💾 Respaldo JSON</button>
+      <button onclick="exportCSV()">📥 Exportar CSV</button>
+      <label class="btn-import">📂 Importar<input type="file" id="fileInput" accept=".json,.csv" onchange="importData(this)"></label>
+    </div>
+  </header>
+
+  <main>
+    <nav class="tabs no-print">
+      <button class="tab active" data-tab="registro">📋 Registro</button>
+      <button class="tab" data-tab="dashboard">📊 Dashboard</button>
+      <button class="tab" data-tab="reportes">📄 Reportes</button>
+      <button class="tab" data-tab="parametros">⚙️ Parámetros</button>
+    </nav>
+
+    <section id="registro" class="tab-content active">
+      <form id="rideForm" class="no-print">
+        <div class="grid">
+          <input type="date" id="fecha" required>
+          <input type="time" id="hraInicio" required>
+          <select id="amPmInicio"><option>AM</option><option>PM</option></select>
+          <input type="text" id="origen" placeholder="Origen" required>
+          <input type="time" id="hraFinal" required>
+          <select id="amPmFinal"><option>AM</option><option>PM</option></select>
+          <input type="text" id="destino" placeholder="Destino" required>
+          <input type="number" id="distancia" step="0.01" placeholder="Distancia (km)" required>
+          <input type="text" id="duracion" placeholder="Duración (00:00)">
+          <input type="number" id="tarifa" step="0.01" placeholder="Tarifa Bruta ($)" required>
+          <input type="number" id="seguro" step="0.01" value="0">
+          <input type="number" id="mantenimiento" step="0.01" value="0">
+          <input type="number" id="tenencia" step="0.01" value="0">
+          <input type="number" id="multas" step="0.01" value="0">
+          <input type="number" id="otros" step="0.01" value="0">
+        </div>
+        <button type="submit">➕ Agregar Viaje</button>
+      </form>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th><th>Inicio</th><th>Fin</th><th>Origen</th><th>Destino</th>
+              <th>Km</th><th>Tarifa</th><th>Neto</th><th>Gasolina</th><th>Costo Total</th>
+              <th>Utilidad</th><th>¿Rentable?</th><th class="no-print">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="ridesTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="dashboard" class="tab-content">
+      <div class="cards">
+        <div class="card"><h3>Ingresos Brutos</h3><p id="d-brutos">$0.00</p></div>
+        <div class="card"><h3>Ingresos Netos</h3><p id="d-netos">$0.00</p></div>
+        <div class="card"><h3>Gastos Totales</h3><p id="d-gastos">$0.00</p></div>
+        <div class="card"><h3>Utilidad Real</h3><p id="d-utilidad">$0.00</p></div>
+        <div class="card"><h3>Viajes Rentables</h3><p id="d-rentables">0</p></div>
+        <div class="card"><h3>Ganancia Prom/Viaje</h3><p id="d-promedio">$0.00</p></div>
+      </div>
+      <div class="cards">
+        <div class="card"><h3>Costo por KM</h3><p id="d-costo-km">$0.00</p></div>
+        <div class="card"><h3>Tarifa Mínima Rentable/KM</h3><p id="d-tarifa-min">$0.00</p></div>
+        <div class="card"><h3>Referencia CDMX</h3><p>$10.00/km</p></div>
+        <div class="card"><h3>¿Es Rentable?</h3><p id="d-rentable-bool">--</p></div>
+      </div>
+    </section>
+
+    <section id="reportes" class="tab-content">
+      <div class="form-grid no-print">
+        <label>Mes 
+          <select id="rep-mes">
+            <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
+            <option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option>
+            <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
+            <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option>
+          </select>
+        </label>
+        <label>Año <input type="number" id="rep-anio" value="2026" min="2020" max="2030"></label>
+        <button onclick="generarReporte()">📊 Generar Reporte</button>
+      </div>
+      <div id="reporte-container" style="display:none; margin-top:1rem;">
+        <button onclick="imprimirReporte()" class="no-print" style="margin-bottom:1rem;">🖨️ Imprimir / Guardar PDF</button>
+        <div id="reporte-content" class="reporte-box"></div>
+      </div>
+    </section>
+
+    <section id="parametros" class="tab-content">
+      <div class="form-grid no-print">
+        <label>Precio Gasolina ($/L)<input type="number" id="p-gasolina" value="23.99"></label>
+        <label>Rendimiento (km/L)<input type="number" id="p-rendimiento" value="10"></label>
+        <label>Comisión InDrive (%)<input type="number" id="p-comision" value="14.49"></label>
+        <label>IVA Comisión (%)<input type="number" id="p-iva-com" value="16"></label>
+        <label>ISR Estimado (%)<input type="number" id="p-isr" value="10"></label>
+        <label>IVA SAT (%)<input type="number" id="p-iva-sat" value="16"></label>
+        <button onclick="saveParams()">💾 Guardar Parámetros</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+  </script>
+</body>
+</html>
