@@ -263,3 +263,32 @@ async function importData(input) {
     } catch (err) { alert('❌ Error: ' + err.message); }
   };
   reader.readAsText(file);
+  input.value = '';
+}
+
+// ️ UTILIDADES DE TIEMPO
+function parseDurationToMinutes(durationStr) {
+  if (!durationStr) return 0;
+  const parts = durationStr.split(':');
+  if (parts.length >= 2) {
+    return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+  }
+  return 0;
+}
+
+function formatMinutesToTime(minutes) {
+  const hrs = Math.floor(minutes / 60);
+  const mins = Math.round(minutes % 60);
+  return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+}
+
+function setupTabs() {
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+}
